@@ -2,7 +2,9 @@ import csv
 import datetime
 import re
 import matplotlib.pyplot as plt
+import pdfkit
 from matplotlib.ticker import IndexLocator
+from jinja2 import Environment, FileSystemLoader
 
 
 class DictByCity:
@@ -159,7 +161,7 @@ class Report:
         self.profession_salary_by_year = job_salary_by_year
         self.profession_count_by_year = job_count_by_year
         self.salary_by_city = salary_by_city
-        self.count_by_city = dict(sorted(count_by_city.items(), key=lambda item: item[1], reverse=True))
+        self.count_by_city = count_by_city
 
     def generate_image(self):
         fig, ax = plt.subplots(2, 2)
@@ -206,14 +208,38 @@ class Report:
 
     def _create_fourth_graph(self, ax):
         ax.set_title("Доля вакансий по городам")
-        ax.pie(self.count_by_city.values(), labels=self.count_by_city.keys(), textprops={'fontsize': 6})
+        sort_dic = dict(sorted(self.count_by_city.items(), key=lambda item: item[1], reverse=True))
+        ax.pie(sort_dic.values(), labels=sort_dic.keys(), textprops={'fontsize': 6})
+
+    def generate_pdf(self):
+        env = Environment(loader=FileSystemLoader("."))
+        template = env.get_template("pdf_template.html")
+
+        heads_years = ["Год", "Средняя зарплата", f"Средняя зарплата - {self.profession}", "Количество вакансий",
+                       f"Количество вакансий - {self.profession}"]
+        heads_cities = ["Город", "Уровень зарплат", "Город", "Доля вакансий"]
+
+        formatted_dict = dict([(k, f"{v:.2%}") for k, v in list(self.count_by_city.items())[:10]])
+
+        pdf_template = template.render(
+            {"profession": self.profession, "salary_by_year": self.salary_by_year, "count_by_year": self.count_by_year,
+             "profession_salary_by_year": self.profession_salary_by_year,
+             "profession_count_by_year": self.profession_count_by_year,
+             "salary_by_city": self.salary_by_city,
+             "count_by_city": formatted_dict,
+             "heads_years": heads_years,
+             "heads_cities": heads_cities})
+        config = pdfkit.configuration(wkhtmltopdf=r'D:\Проги\wkhtmltopdf\bin\wkhtmltopdf.exe')
+        pdfkit.from_string(pdf_template, 'report.pdf', configuration=config, options={"enable-local-file-access": None})
 
 
-file_name = input('Введите название файла: ')
-profession = input('Введите название профессии: ')
-data = DataSet(file_name)
-data.collect_statistic(profession)
-data.print_statistic()
+def get_statistic():
+    file_name = input('Введите название файла: ')
+    profession = input('Введите название профессии: ')
+    data = DataSet(file_name)
+    data.collect_statistic(profession)
+    data.print_statistic()
 
-rep = Report(*data.get_statistic(), profession)
-rep.generate_image()
+    rep = Report(*data.get_statistic(), profession)
+    rep.generate_image()
+    rep.generate_pdf()

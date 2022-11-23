@@ -3,3 +3,6 @@
 Data/
 *.idea
 venv/
+report.pdf
+graph.png
+*__
