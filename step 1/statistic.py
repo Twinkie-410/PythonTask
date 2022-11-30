@@ -8,11 +8,30 @@ from jinja2 import Environment, FileSystemLoader
 
 
 class DictByCity:
+    """
+    Словарь для формирования статистики по городам
+    Atributes
+    ---------
+    data_dict : dict[str, int]
+        данные словаря
+    total_count : int
+        всего вакансий
+    """
     def __init__(self):
+        """
+        Инициализация обьекта
+        """
         self.data_dict = {}
         self.total_count = 0
 
     def add_data(self, city, value):
+        """
+        Добавляет элемент в словарь
+        :param city: str
+            город
+        :param value: int
+            средний оклад
+        """
         if city not in self.data_dict.keys():
             self.data_dict[city] = [value, 1]
         else:
@@ -21,6 +40,10 @@ class DictByCity:
         self.total_count += 1
 
     def get_by_salary(self):
+        """
+        :return: dict[str, int]
+            данные в виде: город - средний оклад
+        """
         sub_dict = {}
         sort_dic = dict(sorted(self.data_dict.items(), key=lambda item: item[1][0] // item[1][1], reverse=True))
         for key, value in sort_dic.items():
@@ -33,6 +56,10 @@ class DictByCity:
         return sub_dict
 
     def get_by_count(self):
+        """
+        :return: dict[str, float]
+            данные в виде: город - доля вакансий от общего количества
+        """
         sub_dict = {}
         sort_dic = dict(sorted(self.data_dict.items(), key=lambda item: item[1][1], reverse=True))
         count_top_city = 0
@@ -49,10 +76,29 @@ class DictByCity:
 
 
 class DictByYear:
+    """
+    Словарь для формирования статистики по годам
+    Atributes
+    ---------
+    data-dict: dict [int, int]
+        данные словаря
+    """
     def __init__(self):
+        """
+        Инициализация обьекта, создание пустого словаря
+        """
         self.data_dict = {}
 
     def add_data(self, year, value, count):
+        """
+        Добавляет элемент в словарь
+        :param year: int
+            год
+        :param value: float
+            средний оклад
+        :param count: int
+            количество вакансий (0 или 1)
+        """
         if year not in self.data_dict.keys():
             self.data_dict[year] = [value, count]
         else:
@@ -60,12 +106,20 @@ class DictByYear:
             self.data_dict[year][1] += count
 
     def get_by_salary(self):
+        """
+        :return: dict[int, int]
+            данные в виде: год - средняя зарплата
+        """
         sub_dict = {}
         for key, value in self.data_dict.items():
             sub_dict[key] = int(value[0] // value[1]) if value[1] != 0 else 0
         return sub_dict
 
     def get_by_count(self):
+        """
+        :return: dict[int, int]
+            данные в виде: год - количество вакансий
+        """
         sub_dict = {}
         for key, value in self.data_dict.items():
             sub_dict[key] = value[1]
@@ -73,7 +127,29 @@ class DictByYear:
 
 
 class DataSet:
+    """
+    Класс для хранения данных и их статистической обработке
+
+    Atribures
+    ---------
+    file_name : str
+        имя/полный путь файла
+    vacancies_objects : Vacancy[]
+        массив вакансий
+    salary_count_by_year : DictByYear
+        зарплата и кол-во вакансий по годам
+    job_salary_count_by_year : DictByYear
+        зарплата и кол-во вакансий по годам для выбранной профессии
+    salary_count_by_city : DictByCity
+        зарплата и кол-во вакансий по городам
+    """
+
     def __init__(self, file_name):
+        """
+        Инициализация обьекта
+        :param file_name: str
+            имя/полный путь файла
+        """
         self.file_name = file_name
         self.vacancies_objects = DataSet._set_vacancies(*DataSet._csv_reader(file_name))
 
@@ -83,6 +159,13 @@ class DataSet:
 
     @staticmethod
     def _csv_reader(file_name):
+        """
+        Считывает данные с csv файла
+        :param file_name: str
+            имя/полный путь файла
+        :return: (str[], str[])
+            заглавия(параметры), значения(сами вакансии)
+        """
         file_csv = csv.reader(open(file_name, encoding='utf_8_sig'))
         list_data = [x for x in file_csv if x.count('') == 0]
 
@@ -90,6 +173,15 @@ class DataSet:
 
     @staticmethod
     def _set_vacancies(headers, vacancies):
+        """
+        Создаёт массив вакансий
+        :param headers: str[]
+            заглавия
+        :param vacancies: str[]
+            вакансии
+        :return: Vacancy[]
+            массив вакансий
+        """
         list_vacancies = []
         for vac in vacancies:
             dic = {}
@@ -102,6 +194,11 @@ class DataSet:
         return list_vacancies
 
     def collect_statistic(self, profession):
+        """
+        Формирует статистику
+        :param profession: str
+            навзвание профессии
+        """
         for vac in self.vacancies_objects:
             self.salary_count_by_year.add_data(vac.published_at.year, vac.average_salary, 1)
             if profession in vac.name:
@@ -111,6 +208,13 @@ class DataSet:
             self.salary_count_by_city.add_data(vac.area_name, vac.average_salary)
 
     def get_statistic(self):
+        """
+        Выдает статистические данные в виде: зп по годам, вакансии по годам,
+            зп по годам для профессии, вакансии по годам для професии,
+            зп по городам, вакансии по городам
+
+        :return: (dict[int, int], dict[int, int], dict[int, int], dict[int, int], dict[str, int], dict[str, int])
+        """
         return self.salary_count_by_year.get_by_salary(), \
                self.salary_count_by_year.get_by_count(), \
                self.job_salary_count_by_year.get_by_salary(), \
@@ -119,6 +223,9 @@ class DataSet:
                self.salary_count_by_city.get_by_count()
 
     def print_statistic(self):
+        """
+        Вывод статисических данных
+        """
         print(f"Динамика уровня зарплат по годам: {self.salary_count_by_year.get_by_salary()}")
         print(f"Динамика количества вакансий по годам: {self.salary_count_by_year.get_by_count()}")
         print(
@@ -131,6 +238,21 @@ class DataSet:
 
 
 class Vacancy:
+    """
+    Класс для описания вакансии
+    Atributes
+    ---------
+    name : str
+        название вакансии
+    average_salary : float
+        средняя зарплата в рублях
+    area_name : str
+        название региона
+    published_at : datetime
+        дата публикации
+    _currency_to_rub : dict[str, float | int]
+        словарь для перевода в рубли
+    """
     _currency_to_rub = {
         "AZN": 35.68,
         "BYR": 23.91,
@@ -145,6 +267,21 @@ class Vacancy:
     }
 
     def __init__(self, name, salary_from, salary_to, salary_currency, area_name, published_at):
+        """
+        Инициализация обьекта
+        :param name: str
+            название вакансии
+        :param salary_from: str
+            нижняя граница оклада
+        :param salary_to: str
+            верхняя граница оклада
+        :param salary_currency: str
+            валюта
+        :param area_name: str
+            название региона
+        :param published_at: str
+            дата публикации
+        """
         self.name = name
         self.average_salary = (float(salary_from) + float(salary_to)) / 2 * Vacancy._currency_to_rub[
             salary_currency]
@@ -153,8 +290,45 @@ class Vacancy:
 
 
 class Report:
+    """
+    Класс для формирования отчёта
+    Atributes
+    ---------
+    profession : str
+        профессия
+    salary_by_year : dict[int, int]
+        зп по годам
+    count_by_year : dict[int, int]
+        кол-во вакансий по годам
+    profession_salary_by_year : dict[int, int]
+        зп по годам для профессии
+    profession_count_by_year : dict[int, int]
+        кол-во вакансий по годам для профессии
+    salary_by_city : dict[str, int]
+        зп по городам
+    count_by_city : dict[str, int]
+        кол-во вакансий по городам
+    """
+
     def __init__(self, salary_by_year, count_by_year, job_salary_by_year, job_count_by_year,
                  salary_by_city, count_by_city, prof):
+        """
+        Инициализация обьекта
+        :param salary_by_year: dict[int, int]
+            зп по годам
+        :param count_by_year: dict[int, int]
+            кол-во вакансий по годам
+        :param job_salary_by_year: dict[int, int]
+            зп по годам для профессии
+        :param job_count_by_year: dict[int, int]
+            кол-во вакансий по годам для профессии
+        :param salary_by_city: dict[str, int]
+            зп по городам
+        :param count_by_city: dict[str, int]
+            кол-во вакансий по городам
+        :param prof: str
+            профессия
+        """
         self.profession = prof
         self.salary_by_year = salary_by_year
         self.count_by_year = count_by_year
@@ -164,6 +338,9 @@ class Report:
         self.count_by_city = count_by_city
 
     def generate_image(self):
+        """
+        Генерирует png файл с графиками
+        """
         fig, ax = plt.subplots(2, 2)
         self._create_first_graph(ax[0, 0])
         self._create_second_graph(ax[0, 1])
@@ -174,6 +351,11 @@ class Report:
         plt.show()
 
     def _create_first_graph(self, ax):
+        """
+        Генерирует диграмму: уровень зарплат по годам как общий, так и для выбранной профессии
+        :param ax: Any
+            место для отрисовки графика
+        """
         ax.set_title("Уровень зарплат по годам")
         w = 0.4
         ax.bar([val - w / 2 for val in range(len(self.salary_by_year.keys()))], self.salary_by_year.values(), width=w,
@@ -186,6 +368,11 @@ class Report:
         ax.yaxis.set_major_locator(IndexLocator(base=10000, offset=0))
 
     def _create_second_graph(self, ax):
+        """
+        Генерирует диграмму: количество вакансий по годам как общий, так и для выбранной профессии
+        :param ax: Any
+            место для отрисовки графика
+        """
         ax.set_title("Количество ваканский по годам")
         w = 0.4
         ax.bar([val - w / 2 for val in range(len(self.count_by_year))], self.count_by_year.values(), width=w,
@@ -197,6 +384,11 @@ class Report:
         ax.legend(fontsize=8, loc='upper left')
 
     def _create_third_graph(self, ax):
+        """
+        Генерирует горизонтальну диграмму: уровень зарплат по городам
+        :param ax: Any
+            место для отрисовки графика
+        """
         ax.set_title("Уровень зарплат по городам")
         y_pos = range(len(self.salary_by_city))
         cities = [re.sub(r"[- ]", "\n", c) for c in self.salary_by_city.keys()]
@@ -207,11 +399,19 @@ class Report:
         ax.tick_params(axis="y", labelsize=6)
 
     def _create_fourth_graph(self, ax):
+        """
+        Генерирует круговую диграмму: уколичество вакансий по городам
+        :param ax: Any
+            место для отрисовки графика
+        """
         ax.set_title("Доля вакансий по городам")
         sort_dic = dict(sorted(self.count_by_city.items(), key=lambda item: item[1], reverse=True))
         ax.pie(sort_dic.values(), labels=sort_dic.keys(), textprops={'fontsize': 6})
 
     def generate_pdf(self):
+        """
+        Формирует pdf файл со статистикой в виде таблиц и диаграмм
+        """
         env = Environment(loader=FileSystemLoader("."))
         template = env.get_template("pdf_template.html")
 
@@ -234,6 +434,10 @@ class Report:
 
 
 def get_statistic():
+    """
+    Запускает процесс для формирования отчёта по статистике
+    :return: формирует pdf файл со статистикой по вакансиям
+    """
     file_name = input('Введите название файла: ')
     profession = input('Введите название профессии: ')
     data = DataSet(file_name)
