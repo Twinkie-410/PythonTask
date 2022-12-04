@@ -84,6 +84,7 @@ class DataSet:
     vacancies_object : Vacancy[]
         список вакансий
     """
+
     def __init__(self, file_name):
         """
         Инициализация обьекта
@@ -220,8 +221,10 @@ class DataSet:
                     return False
             return True
         if filter_field == 'published_at':
-            return datetime.datetime.strptime(vac.published_at, "%Y-%m-%dT%H:%M:%S%z").strftime(
-                "%d.%m.%Y") == filter_value
+            return ".".join(reversed(vac.published_at[:10].split("-"))) == filter_value
+            # res_data = datetime.strptime(data, "%Y-%m-%dT%H:%M:%S%z")
+            # f"{res_data.day}.{res_data.month:02}.{res_data.year}"
+            # datetime.datetime.strptime(vac.published_at, "%Y-%m-%dT%H:%M:%S%z").strftime("%d.%m.%Y") == filter_value
         return vac.__getattribute__(filter_field) == filter_value
 
     def sort_data(self, sort_parameter, is_reverse):
@@ -246,9 +249,7 @@ class DataSet:
                                         reverse=is_reverse)
             return
         if sort_parameter == 'published_at':
-            self.vacancies_objects.sort(
-                key=lambda vac: datetime.datetime.strptime(vac.published_at, "%Y-%m-%dT%H:%M:%S%z"),
-                reverse=is_reverse)
+            self.vacancies_objects.sort(key=lambda vac: vac.published_at, reverse=is_reverse)
             return
         if sort_parameter == 'experience_id':
             self.vacancies_objects.sort(key=lambda vac: weight_for_work_experience[vac.experience_id],
@@ -282,6 +283,7 @@ class Vacancy:
     published_at : str
         дата публикации
     """
+
     def __init__(self, name, description, key_skills, experience_id, premium, employer_name, salary, area_name,
                  published_at):
         """
@@ -312,7 +314,10 @@ class Vacancy:
         """
         self.experience_id = work_experience[self.experience_id]
         self.premium = true_false_dic[self.premium]
-        self.published_at = datetime.datetime.strptime(self.published_at, "%Y-%m-%dT%H:%M:%S%z").strftime("%d.%m.%Y")
+        self.published_at = ".".join(reversed(self.published_at[:10].split("-")))
+        # res_data = datetime.strptime(data, "%Y-%m-%dT%H:%M:%S%z")
+        # f"{res_data.day}.{res_data.month:02}.{res_data.year}"
+        # datetime.datetime.strptime(self.published_at, "%Y-%m-%dT%H:%M:%S%z").strftime("%d.%m.%Y")
 
 
 class Salary:

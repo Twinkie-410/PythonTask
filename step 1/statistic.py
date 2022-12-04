@@ -372,7 +372,11 @@ class Vacancy:
         self.average_salary = (float(salary_from) + float(salary_to)) / 2 * Vacancy._currency_to_rub[
             salary_currency]
         self.area_name = area_name
-        self.published_at = datetime.datetime.strptime(published_at, "%Y-%m-%dT%H:%M:%S%z")
+        self.published_at = ".".join(reversed(published_at[:10].split("-")))
+        # res_data = datetime.strptime(data, "%Y-%m-%dT%H:%M:%S%z")
+        # f"{res_data.day}.{res_data.month:02}.{res_data.year}"
+
+        # datetime.datetime.strptime(published_at, "%Y-%m-%dT%H:%M:%S%z")
 
 
 class Report:
