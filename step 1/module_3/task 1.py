@@ -1,42 +1,20 @@
-import csv
+import pandas as pd
+
+pd.set_option("display.max_columns", False)
+pd.set_option("expand_frame_repr", False)
 
 
-def get_vacancies_by_year(file_path="..\\..\\Data\\vacancies_by_year.csv"):
+def section_by_year(file_path="..\\..\\Data\\vacancies_by_year.csv"):
     """
-    Функция по разбиению вакансий по годам
+    Разделяет входной файл на более мелкие, группирую по годам
     :param file_path: str
-    :return: (dict[str, str[]], str[])
-        словарь: ключи - года вакансий
-                 значения - вакансии соответсвующего года публикации
-        массив заголовков
     """
-    with open(file_path, "r", encoding='utf_8_sig') as file:
-        reader = csv.reader(file)
-        headers = next(reader, None)
-        dict_vac_by_year = {}
-        for line in reader:
-            year = line[5][:4]
-            if year not in dict_vac_by_year.keys():
-                dict_vac_by_year[year] = [line]
-            else:
-                dict_vac_by_year[year].append(line)
-
-    return dict_vac_by_year, headers
+    df = pd.read_csv(file_path)
+    df["year"] = df["published_at"].apply(lambda s: s[:4])
+    df = df.groupby("year")
+    for year, data in df:
+        data[["name", "salary_from", "salary_to", "salary_currency", "area_name", "published_at"]].to_csv(
+            rf"csv_files\part_{year}.csv", index=False)
 
 
-def write_to_csv(data_by_year, headers):
-    """
-    Формирует файлы с вакансиями по годам
-    :param data_by_year: dict[str, str[]]
-        словарь с вакансиями по годам
-    :param headers: str[]
-    """
-    for key, value in data_by_year.items():
-        with open(f"..\\data_by_year\\part_{key}.csv", "w", encoding="utf-8") as file:
-            by_write = [headers, *value]
-            writer = csv.writer(file, delimiter=",")
-            writer.writerows(by_write)
-
-
-vac_by_year, title = get_vacancies_by_year()
-write_to_csv(vac_by_year, title)
+section_by_year()
