@@ -2,6 +2,7 @@ import multiprocessing
 import cProfile
 import os
 import pandas as pd
+import concurrent.futures as con_fut
 
 
 class Solution:
@@ -52,8 +53,8 @@ class Solution:
         df["published_at"] = df["published_at"].apply(lambda s: int(s[:4]))
         df_vac = df[df["name"].str.contains(self.profession)]
 
-        return df["published_at"].values[0], [int(df["salary"].mean()), len(df), int(df_vac["salary"].mean()),
-                                              len(df_vac)]
+        return df["published_at"].values[0], [int(df["salary"].mean()), len(df),
+                                              int(df_vac["salary"].mean() if len(df_vac) != 0 else 0), len(df_vac)]
 
     def create_statistic_by_year_mltproc_off(self):
         """
@@ -82,6 +83,23 @@ class Solution:
         pool = multiprocessing.Pool(4)
         res_list = pool.starmap(self.get_statistic_by_year, [(file,) for file in files])
         pool.close()
+
+        for year, data_stat in res_list:
+            self.salary_by_years[year] = data_stat[0]
+            self.count_by_years[year] = data_stat[1]
+            self.prof_salary_by_years[year] = data_stat[2]
+            self.prof_count_by_years[year] = data_stat[3]
+
+    def create_statistic_by_year_concurrent_futures(self):
+        """
+        Собирает статистику по годам
+
+        Использует модуль concurrent futures для работы
+        """
+        files = [rf"csv_files\{file_name}" for file_name in os.listdir("csv_files")]
+        with con_fut.ProcessPoolExecutor(max_workers=4) as executer:
+            res = executer.map(self.get_statistic_by_year, files)
+        res_list = list(res)
 
         for year, data_stat in res_list:
             self.salary_by_years[year] = data_stat[0]
@@ -125,5 +143,9 @@ if __name__ == '__main__':
     # solve.divide_file_by_year()
     solve.get_statistic()
     solve.print_statistic()
+
+    # solve = Solution("..\\..\\Data\\vacancies_by_year.csv", "Программист")
+    # solve.divide_file_by_year()
     # cProfile.run("solve.create_statistic_by_year_mltproc_on()", sort="cumtime")
     # cProfile.run("solve.create_statistic_by_year_mltproc_off()", sort="cumtime")
+    # cProfile.run("solve.create_statistic_by_year_concurrent_futures()", sort="cumtime")
