@@ -31,7 +31,7 @@ def get_ruble_exchange_rate():
     """
     Составляет курс валют за некоторый период в виде csv файла по данным ЦБ РФ
     """
-    # currency, date_interval = get_currencies_and_dates()
+    # currency, dates = get_currencies_and_dates()
     currency = ['BYR', 'EUR', 'KZT', 'UAH', 'USD']
     dates = ['01/2003', '02/2003', '03/2003', '04/2003', '05/2003', '06/2003', '07/2003', '08/2003', '09/2003', '10/2003',
              '11/2003', '12/2003', '01/2004', '02/2004', '03/2004', '04/2004', '05/2004', '06/2004', '07/2004', '08/2004',
@@ -61,7 +61,7 @@ def get_ruble_exchange_rate():
     for date in dates:
         response = requests.get(f"https://www.cbr.ru/scripts/XML_daily.asp?date_req=01/{date}")
         df_cur = pd.read_xml(response.text)
-        lst = [date]
+        lst = ["-".join(reversed(date.split("/")))]
         for cur in currency:
             if cur == 'BYR':
                 record_cur = df_cur.loc[df_cur["CharCode"].isin(['BYN', cur])]
@@ -73,3 +73,5 @@ def get_ruble_exchange_rate():
 
     res_df.to_csv("currencies.csv", index=False)
     print(res_df.head())
+
+get_ruble_exchange_rate()
