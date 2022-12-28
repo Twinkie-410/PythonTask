@@ -30,6 +30,6 @@ def join_salaries_field(df_):
 
 
 file_path = "..\\Data\\vacancies_dif_currencies.csv"
-df = pd.read_csv(file_path, nrows=100)
+df = pd.read_csv(file_path)
 df = df.pipe(join_salaries_field)
-df.to_csv("join_salaries_field_vacancies.csv", index=False)
+df.to_csv("join_salaries_field_vacancies_full.csv", index=False)
