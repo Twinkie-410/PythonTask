@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Report</title>
+    <style>
+        body {
+            text-align: center;
+        }
+
+        table {
+            border-collapse: collapse;
+            border: 1px solid black;
+            width: 100%
+        }
+
+        th, td {
+            text-align: center;
+            border: 1px solid black;
+            padding: 5px;
+        }
+    </style>
+</head>
+<body>
+  <h1>Средняя зарплата по регионам</h1>
+    {{ table0 }}
+  <h1>Доля вакансий по регионам</h1>
+      {{ table1 }}
+  <h1>Динамика для профессии {{ vacancy }} в регионе {{ area_name }}</h1>
+      {{ table2 }}
+</body>
+</html>
