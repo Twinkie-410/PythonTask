@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Report</title>
+    <style>
+        body {
+            text-align: center;
+            font-family: 'Verdana';
+        }
+
+        table {
+            border-collapse: collapse;
+            border: 1px solid black;
+            width: 100%
+        }
+
+        th, td {
+            border: 1px solid black;
+            padding: 5px;
+        }
+
+        .table-city-salary, .table-city-count {
+            float: left;
+            margin: 1.25%;
+            width: 45%;
+        }
+
+    </style>
+</head>
+<body>
+<h1>Аналитика по зарплатам для профессии {{profession}}</h1>
+<h2>Статистика по годам</h2>
+<table>
+    <tr>
+        <th>{{heads_years[0]}}</th>
+        <th>{{heads_years[1]}}</th>
+        <th>{{heads_years[2]}}</th>
+        <th>{{heads_years[3]}}</th>
+        <th>{{heads_years[4]}}</th>
+    </tr>
+    {% for key, value in salary_by_year.items() %}
+    <tr>
+        <td>{{key}}</td>
+        <td>{{value}}</td>
+        <td>{{profession_salary_by_year[key]}}</td>
+        <td>{{count_by_year[key]}}</td>
+        <td>{{profession_count_by_year[key]}}</td>
+    </tr>
+    {% endfor %}
+</table>
+</body>
