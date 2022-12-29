@@ -108,7 +108,7 @@ if __name__ == '__main__':
     file = input("Введите название файла: ")
     profession = input("Введите название профессии: ")
     solve = Solution(file, profession)
-    # solve.divide_file_by_year()
+    solve.divide_file_by_year()
     solve.get_statistic()
     solve.generate_pdf()
     # solve.print_statistic()

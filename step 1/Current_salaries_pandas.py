@@ -6,25 +6,28 @@ pd.set_option("expand_frame_repr", False)
 
 
 def calculate(data, rub_exchange_rate):
-    s_from, s_to, cur, date = data
+    s_from = float(data[0])
+    s_to = float(data[1])
+    cur = str(data[2])
+    date = str(data[3])
     date = date[:7]
-    if pd.isna(cur) or cur not in rub_exchange_rate.columns or (pd.isna(s_from) and pd.isna(s_to)):
+    if cur == "0" or (cur != "RUR" and cur not in rub_exchange_rate.columns) or (s_from == 0 and s_to == 0):
         return np.NAN
-    salary = s_from if pd.notna(s_from) else 0
-    salary += s_to if pd.notna(s_to) else 0
-    if salary == 0:
-        return np.NAN
+    salary = s_from + s_to
+    if s_from != 0 and s_to != 0:
+        salary = salary / 2
     ratio = 1
     if cur != "RUR":
         ratio = rub_exchange_rate[rub_exchange_rate["Date"] == date][cur].values[0]
-    return round(salary*ratio)
+    return round(salary * ratio)
 
 
 def join_salaries_field(df_):
     rub_exchange_rate = pd.read_csv("module_3.3_API/currencies.csv")
+    df_ = df_.fillna(0)
     df_["salary"] = df_[["salary_from", "salary_to", "salary_currency", "published_at"]].apply(calculate,
                                                                                                rub_exchange_rate=rub_exchange_rate,
-                                                                                               axis=1)
+                                                                                               axis=1).astype(float)
     df_ = df_[["name", "salary", "area_name", "published_at"]]
     return df_
 
